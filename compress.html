@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Compressor - Video & Audio Compression Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            max-width: 1000px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .left-panel {
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .left-panel h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .left-panel p {
+            font-size: 16px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin-top: 20px;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+            font-size: 15px;
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            font-size: 20px;
+            font-weight: bold;
+            color: #4ade80;
+        }
+
+        .right-panel {
+            padding: 40px;
+            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 25px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            display: none;
+        }
+
+        .browse-btn {
+            width: 100%;
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .browse-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .browse-btn:active {
+            transform: translateY(0);
+        }
+
+        .file-info {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #999;
+            transition: all 0.3s;
+        }
+
+        .file-info.has-file {
+            border-color: #667eea;
+            background: #f0f4ff;
+            color: #333;
+            justify-content: flex-start;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            word-break: break-all;
+        }
+
+        .file-size {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .target-size-control {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .target-size-control label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .size-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .target-size-control input[type="number"] {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .target-size-control input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .target-size-control span {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .size-slider {
+            width: 100%;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        .size-display {
+            text-align: center;
+            margin-top: 10px;
+            color: #667eea;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .compress-btn {
+            width: 100%;
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .compress-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .compress-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .compress-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .progress-container {
+            display: none;
+            gap: 15px;
+        }
+
+        .progress-container.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .download-btn {
+            width: 100%;
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: none;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .download-btn.show {
+            display: flex;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(245, 158, 11, 0.4);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
+
+        .status-message {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+        }
+
+        .status-message.show {
+            display: block;
+        }
+
+        .status-message.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #6ee7b7;
+        }
+
+        .status-message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        .status-message.info {
+            background: #dbeafe;
+            color: #0c2340;
+            border: 1px solid #93c5fd;
+        }
+
+        .compression-settings {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .right-panel h3 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Left Panel -->
+        <div class="left-panel">
+            <div>
+                <h1>📹 Media Compressor</h1>
+                <p>Compress your video and audio files to your desired size with ease</p>
+            </div>
+
+            <ul class="feature-list">
+                <li>Support for MP4, WebM, MOV, MKV, MP3, WAV, AAC</li>
+                <li>Custom compression target size</li>
+                <li>Real-time progress tracking</li>
+                <li>Fast and efficient compression</li>
+                <li>No file size limits</li>
+                <li>Works entirely in your browser</li>
+            </ul>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="right-panel">
+            <div>
+                <h3>Compress Your Media</h3>
+
+                <!-- File Input -->
+                <div class="file-input-wrapper">
+                    <input type="file" id="fileInput" accept="video/*,audio/*">
+                    <button class="browse-btn" onclick="document.getElementById('fileInput').click()">
+                        📂 Browse & Select File
+                    </button>
+                </div>
+
+                <!-- File Info Display -->
+                <div class="file-info" id="fileInfo">
+                    No file selected
+                </div>
+
+                <!-- Target Size Control -->
+                <div class="target-size-control">
+                    <label for="targetSize">Target Compression Size (MB)</label>
+                    <div class="size-input-group">
+                        <input type="number" id="targetSize" min="1" max="1000" value="9" step="1">
+                        <span>MB</span>
+                    </div>
+                    <input type="range" class="size-slider" id="sizeSlider" min="1" max="1000" value="9">
+                    <div class="size-display" id="sizeDisplay">Target: 9 MB</div>
+                </div>
+
+                <!-- Progress Container -->
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">Preparing compression...</div>
+                </div>
+
+                <!-- Status Message -->
+                <div class="status-message" id="statusMessage"></div>
+
+                <!-- Compress Button -->
+                <button class="compress-btn" id="compressBtn" disabled>
+                    ⚡ Compress File
+                </button>
+
+                <!-- Download Button -->
+                <button class="download-btn" id="downloadBtn">
+                    ⬇️ Download Compressed File
+                </button>
+
+                <div class="compression-settings">
+                    <strong>💡 Note:</strong> Compression uses FFmpeg WASM. Larger files may take time to process depending on your system performance.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js"></script>
+    <script>
+        const { FFmpeg, fetchFile } = FFmpeg;
+        const ffmpeg = new FFmpeg.FFmpeg();
+
+        let selectedFile = null;
+        let compressedBlob = null;
+        let compressedFileName = null;
+
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const targetSizeInput = document.getElementById('targetSize');
+        const sizeSlider = document.getElementById('sizeSlider');
+        const sizeDisplay = document.getElementById('sizeDisplay');
+        const compressBtn = document.getElementById('compressBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const statusMessage = document.getElementById('statusMessage');
+
+        // Sync target size input and slider
+        targetSizeInput.addEventListener('change', (e) => {
+            sizeSlider.value = e.target.value;
+            updateSizeDisplay();
+        });
+
+        sizeSlider.addEventListener('input', (e) => {
+            targetSizeInput.value = e.target.value;
+            updateSizeDisplay();
+        });
+
+        function updateSizeDisplay() {
+            const size = targetSizeInput.value;
+            sizeDisplay.textContent = `Target: ${size} MB`;
+        }
+
+        // File selection
+        fileInput.addEventListener('change', (e) => {
+            selectedFile = e.target.files[0];
+            if (selectedFile) {
+                const fileSizeMB = (selectedFile.size / (1024 * 1024)).toFixed(2);
+                fileInfo.innerHTML = `
+                    <div class="file-name">📄 ${selectedFile.name}</div>
+                    <div class="file-size">Size: ${fileSizeMB} MB | Type: ${selectedFile.type}</div>
+                `;
+                fileInfo.classList.add('has-file');
+                compressBtn.disabled = false;
+                downloadBtn.classList.remove('show');
+                compressedBlob = null;
+                clearStatus();
+            }
+        });
+
+        // Compress button
+        compressBtn.addEventListener('click', async () => {
+            if (!selectedFile) {
+                showStatus('Please select a file first', 'error');
+                return;
+            }
+
+            if (!ffmpeg.isLoaded()) {
+                await loadFFmpeg();
+            }
+
+            await compressFile();
+        });
+
+        // Download button
+        downloadBtn.addEventListener('click', () => {
+            if (!compressedBlob) return;
+
+            const url = URL.createObjectURL(compressedBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = compressedFileName;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        async function loadFFmpeg() {
+            try {
+                showStatus('Loading compression engine...', 'info');
+                await ffmpeg.load();
+                clearStatus();
+            } catch (error) {
+                showStatus('Failed to load compression engine: ' + error.message, 'error');
+                throw error;
+            }
+        }
+
+        async function compressFile() {
+            try {
+                compressBtn.disabled = true;
+                progressContainer.classList.add('active');
+                clearStatus();
+
+                const targetSizeMB = parseInt(targetSizeInput.value);
+                const targetSizeBytes = targetSizeMB * 1024 * 1024;
+                const fileSizeBytes = selectedFile.size;
+
+                // Calculate bitrate
+                let videoBitrate = '500k';
+                let audioBitrate = '128k';
+
+                if (selectedFile.type.startsWith('video/')) {
+                    const durationEstimate = 60; // Estimate
+                    const bitrateKbps = Math.max(100, Math.floor((targetSizeBytes * 8) / (durationEstimate * 1000)));
+                    videoBitrate = Math.max(100, bitrateKbps - 128) + 'k';
+                    audioBitrate = '128k';
+                } else if (selectedFile.type.startsWith('audio/')) {
+                    const durationEstimate = 300; // Estimate
+                    const bitrateKbps = Math.max(32, Math.floor((targetSizeBytes * 8) / (durationEstimate * 1000)));
+                    audioBitrate = bitrateKbps + 'k';
+                }
+
+                progressText.textContent = 'Reading file...';
+                progressFill.style.width = '10%';
+
+                // Write file to FFmpeg
+                const data = await fetchFile(selectedFile);
+                const inputFileName = selectedFile.name;
+                ffmpeg.FS('writeFile', inputFileName, data);
+
+                progressText.textContent = 'Compressing file...';
+                progressFill.style.width = '30%';
+
+                // Determine output format
+                const ext = inputFileName.split('.').pop().toLowerCase();
+                let outputFileName = inputFileName.replace(/\.[^/.]+$/, '') + '_compressed.' + ext;
+                
+                // FFmpeg command based on file type
+                let command = [];
+                if (selectedFile.type.startsWith('video/')) {
+                    command = [
+                        '-i', inputFileName,
+                        '-vcodec', 'libx264',
+                        '-b:v', videoBitrate,
+                        '-acodec', 'aac',
+                        '-b:a', audioBitrate,
+                        '-preset', 'fast',
+                        '-movflags', '+faststart',
+                        outputFileName
+                    ];
+                } else {
+                    command = [
+                        '-i', inputFileName,
+                        '-acodec', 'aac',
+                        '-b:a', audioBitrate,
+                        outputFileName
+                    ];
+                }
+
+                await ffmpeg.run(...command);
+
+                progressFill.style.width = '80%';
+                progressText.textContent = 'Finalizing...';
+
+                // Read compressed file
+                const compressedData = ffmpeg.FS('readFile', outputFileName);
+                compressedBlob = new Blob([compressedData.buffer], { type: selectedFile.type });
+                compressedFileName = outputFileName;
+
+                // Clean up
+                ffmpeg.FS('unlink', inputFileName);
+                ffmpeg.FS('unlink', outputFileName);
+
+                progressFill.style.width = '100%';
+                progressText.textContent = 'Compression complete!';
+
+                const originalSizeMB = (fileSizeBytes / (1024 * 1024)).toFixed(2);
+                const compressedSizeMB = (compressedBlob.size / (1024 * 1024)).toFixed(2);
+                const reduction = (((fileSizeBytes - compressedBlob.size) / fileSizeBytes) * 100).toFixed(1);
+
+                setTimeout(() => {
+                    progressContainer.classList.remove('active');
+                    showStatus(
+                        `✓ Success! ${originalSizeMB}MB → ${compressedSizeMB}MB (${reduction}% reduction)`,
+                        'success'
+                    );
+                    downloadBtn.classList.add('show');
+                }, 1000);
+
+            } catch (error) {
+                progressContainer.classList.remove('active');
+                showStatus('Compression error: ' + error.message, 'error');
+                console.error('Compression error:', error);
+            } finally {
+                compressBtn.disabled = false;
+            }
+        }
+
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message show ${type}`;
+        }
+
+        function clearStatus() {
+            statusMessage.classList.remove('show');
+            statusMessage.textContent = '';
+        }
+    </script>
+</body>
+</html>
